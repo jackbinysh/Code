@@ -1,7 +1,7 @@
-T = 500;
+T = 5000;
 L = 100;
 X = zeros(T,2*L);
-N = 10; 
+N = 100; 
 
 FitnessMatrix = zeros(N,N);
 FitnessMatrix(:) = 0.5;
@@ -58,6 +58,8 @@ end
 
 %the imaging
 imagesc(X);
+xlabel('L');
+ylabel('T downwards');
 
 
 
