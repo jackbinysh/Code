@@ -3,12 +3,16 @@
 %
 
 N = 1000; % total number of nodes
-m0 = 2 % number of nodes to begin with
-k0 = 0 % an initial offset in the probabilities
+m0 = 2; % number of nodes to begin with
+k0 = 0; % an initial offset in the probabilities
+totalcounts = zeros(N-1,1)';
+NumRealisations = 100;
+sumgrads = 0;
+alllambda = [];
 
 
-for k0 = [0,2,4]
-    for realisations = 1:20
+for k0 = [0]
+    for realisations = 1:NumRealisations
 
         e = []; % initiailising the empty edge list
         A = zeros(N); % intiailisng the adjacncy matrix which will define the graph
@@ -21,8 +25,8 @@ for k0 = [0,2,4]
         end
 
         % initialisng the adjacency matrix
-        A(1:m0,1:m0) =1
-        A = triu(A) - diag(diag(A))
+        A(1:m0,1:m0) =1;
+        A = triu(A) - diag(diag(A));
 
 
         % okay we are all set up, now we can begin adding nodes
@@ -49,7 +53,35 @@ for k0 = [0,2,4]
             %e(length+3:length+2+m0+k0) = i;
             e(end+1:(end+1) + k0 + 2) = i;
         end
+        % completing the matrix
+        A = A + A';
+        
+        % after each realisation, compute the degree distribution and plot
+        % it
+        d = sum(A'); % the degree of each node, found from the row sums
+        countsthisrealization = hist(d, unique(d)); % creating the distribution (crappily)
+         
+        % update the total number of counts.
+       
+
+        p = polyfit(unique(d),countsthisrealization,1);
+        sumgrads = sumgrads + p(1);
+        totalcounts(int64(unique(d))) = totalcounts(int64(unique(d))) + countsthisrealization;
+        %plotting
+        %loglog(unique(d),countsthisrealization)
+        hold all
+        
+        % computing the graph laplacian
+        Q = A - diag(sum(A'));
+        lambda = eig(Q);
+        alllambda = vertcat(alllambda,lambda);
+      
     end
+    
+    averagecounts = totalcounts/NumRealisations;
+    averagegrad = sumgrads/NumRealisations
+    
+    
 end
 
-
+ plot(ksdensity(alllambda));
