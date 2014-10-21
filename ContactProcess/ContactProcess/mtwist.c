@@ -824,7 +824,7 @@ int mts_savestate(
 
     for (i = MT_STATE_SIZE;  --i >= 0;  )
 	{
-	if (fprintf(statefile, "%" PRIu32 " ", state->statevec[i]) < 0)
+	if (fprintf(statefile, "%u ", state->statevec[i]) < 0)
 	    return 0;
 	}
 
@@ -850,7 +850,7 @@ int mts_loadstate(
 
     for (i = MT_STATE_SIZE;  --i >= 0;  )
 	{
-	if (fscanf(statefile, "%" SCNu32, &state->statevec[i]) != 1)
+	if (fscanf(statefile, "%u", &state->statevec[i]) != 1)
 	    return 0;
 	}
 

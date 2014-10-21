@@ -14,9 +14,8 @@
 #include "mtwist.h"
 
 
-#define runs 100      //number of averages
-#define steps 200     //number of outputs in the file
-#define tmax 1000     //total (real) simulation time
+#define runs 2000      //number of averages
+#define steps 2000     //number of outputs in the file
 
 
 FILE *output_ptr;
@@ -38,13 +37,14 @@ int main(void)
 	int iSystemSize = 0; //system size
 	int k, i, j, imax;
 	time_t t1;
-	for (fLambda = 1; fLambda <= 2; fLambda = fLambda + 0.1)
+	for (iSystemSize = 128; iSystemSize <= 128; iSystemSize ++)
 	{
-		for (iSystemSize = 256; iSystemSize <= 256; iSystemSize++)
+		for (fLambda = 1.63; fLambda <= 1.67; fLambda = fLambda + 0.001)
 		  {
+			int tmax = 10 * iSystemSize;
 			  std::vector<int> x(iSystemSize);
 			  mt_seed();  //random seed with system time t1
-			  printf("This is a very good program for the contact process...\n");
+			  printf("Size %d \t lambda %g \t \n", iSystemSize,fLambda);
 			  pr = 1. / (2.*fLambda);     // recovery probability for l>=1
 			  pi = 0.5;           // infection prob for l>=1
 			  imax = tmax*iSystemSize * 2 * fLambda / steps;   // number of update steps between outputs
