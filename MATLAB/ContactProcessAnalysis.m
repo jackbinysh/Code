@@ -1,13 +1,14 @@
 % script for analysing data from contact process
-n=['1024']
+n=['128']
 d=[];
+NumSteps = 200;
 Legend = cell(1);
- for lambda = {'16.1','16.2','16.3','16.4','16.5','16.6','16.7','16.8','16.9'}
-        fileextension = strcat('C:\Users\Jack Binysh\Documents\Root\Code\ContactProcess\Release\contact_n',n,'_lambda',lambda,'.dat');
+ for lambda = cellfun(@num2str, num2cell((161:169)/10) , 'UniformOutput', false) %{'16.1','16.2','16.3','16.4','16.5','16.6','16.7','16.8','16.9'}
+        fileextension = strcat('C:\Users\Jack Binysh\Google Drive\Warwick\Networks and Random Processes\Homework2\1.3\Finer data\contact_n',n,'_lambda',lambda,'.dat');
         A = importdata(char(fileextension));
-        B(1:200,1) = A(1:200,2);
+        B(1:NumSteps,1) = A(1:NumSteps,2);
         for i = 0:9
-            B(1:200, i+2) = A(((i*200 + 1) : ((i+1)*200)), 1);
+            B(1:NumSteps, i+2) = A(((i*NumSteps + 1) : ((i+1)*NumSteps)), 1);
         end
 % constuct a matrix of times and average values
 c(:,1) = B(:,1);
