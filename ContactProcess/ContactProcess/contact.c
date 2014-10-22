@@ -15,7 +15,7 @@
 
 
 #define runs 2000      //number of averages
-#define steps 2000     //number of outputs in the file
+#define steps 200     //number of outputs in the file
 
 
 FILE *output_ptr;
@@ -41,7 +41,7 @@ int main(void)
 	{
 		for (fLambda = 1.63; fLambda <= 1.67; fLambda = fLambda + 0.001)
 		  {
-			int tmax = 10 * iSystemSize;
+			int tmax = 100 * iSystemSize;
 			  std::vector<int> x(iSystemSize);
 			  mt_seed();  //random seed with system time t1
 			  printf("Size %d \t lambda %g \t \n", iSystemSize,fLambda);

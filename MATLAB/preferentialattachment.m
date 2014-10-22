@@ -8,7 +8,7 @@ function[] = preferentialattachment()
     m0 = 2; % number of nodes to begin with
     k0 = 2; % an initial offset in the probabilities
     totalcounts = zeros(N-1,3)';
-    NumRealisations = 200;
+    NumRealisations = 50;
     sumgrads = 0;
     alllambda = [];
     k=1;
@@ -62,10 +62,10 @@ function[] = preferentialattachment()
             % after each realisation, compute the degree distribution and plot
             % it
             d = sum(A'); % the degree of each node, found from the row sums
-            countsthisrealization = hist(d, unique(d)); % creating the distribution (crappily)
-            % update the total number of counts.
-            totalcounts(k,int64(unique(d))) = totalcounts(k,int64(unique(d))) + countsthisrealization; 
-            averagecounts(k,:) = totalcounts(k,:)/NumRealisations;
+%             countsthisrealization = hist(d, unique(d)); % creating the distribution (crappily)
+%             % update the total number of counts.
+%             totalcounts(k,int64(unique(d))) = totalcounts(k,int64(unique(d))) + countsthisrealization; 
+%             averagecounts(k,:) = totalcounts(k,:)/NumRealisations;
             
             
 %             avek_nn=avek_nn+Knn(A);
@@ -74,16 +74,15 @@ function[] = preferentialattachment()
     %         loglog(unique(d),countsthisrealization)
     %         hold all
 
-            % computing the graph laplacian
-    %         Q = A - diag(sum(A'));
-    %         lambda = eig(Q);
-    %         alllambda = vertcat(alllambda,lambda);
-        knn=Knn(A);
-        knn(2,:)=1:1000;
-        knn=knn(:,knn(1,:)~=0);
-        plot(knn(2,:),knn(1,:),'o')
-        %plot(1:1000,Knn(A),'o')
-        hold all
+%             computing the graph laplacian
+            lambda = eig(A);
+            alllambda = vertcat(alllambda,lambda);
+%         knn=Knn(A);
+%         knn(2,:)=1:1000;
+%         knn=knn(:,knn(1,:)~=0);
+%         plot(knn(2,:),knn(1,:),'o')
+%         %plot(1:1000,Knn(A),'o')
+%         hold all
         end
 
         % okay we've generated the data. Now, I will strip out all the 0's, log
