@@ -1,0 +1,29 @@
+classdef ERGraph
+    %UNTITLED Summary of this class goes here
+    %   Detailed explanation goes here
+    
+    properties
+        m_AdjacencyMatrix 
+        m_P
+    end
+    
+    methods
+        function Obj = ERGraph(N,P)
+            Obj.m_P = P;
+            Obj.m_AdjacencyMatrix = zeros(N,N);
+        end
+            
+        function LUDecomp = LUDecomp(Obj)
+        end
+        function IsSingular = IsSingular(Obj)
+        end
+        % private functions, used internally within the class only
+        function Edge = Populate(Obj.m_P)
+        end
+
+            
+        
+    end
+    
+end
+
