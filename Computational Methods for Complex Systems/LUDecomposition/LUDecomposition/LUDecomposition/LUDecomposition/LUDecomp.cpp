@@ -1,11 +1,13 @@
 #include "LUDecomp.h"
+#include <cmath>
+#include <iostream>
 
 LUDecomp::LUDecomp(std::vector<std::vector<double>>& xA)
 {
 	m_iN = xA[0].size();
 	m_bIsSingular = false;
 	m_xLUDecomp = xA;
-	m_dTolerance = 10 ^ -9;
+	m_dTolerance = pow(10,-9);
 	
 	m_xPermutation.resize(m_iN);
 	for (int i = 0; i <= m_iN - 1; i++)
@@ -13,14 +15,16 @@ LUDecomp::LUDecomp(std::vector<std::vector<double>>& xA)
 		m_xPermutation[i] = i;
 	}
 
+
 	ZeroRowCheck();
+	if (m_bIsSingular) return;
 
 	for (int j = 0; j <= m_iN - 1; j++)
 	{
 		for (int i = 0; i <= j; i++)
 		{
 			double dtemp = 0;
-			for (int k = 0; k <= j - 1; k++)
+			for (int k = 0; k <= i - 1; k++)
 			{
 				dtemp += m_xLUDecomp[i][k] * m_xLUDecomp[k][j];
 			}
@@ -37,11 +41,13 @@ LUDecomp::LUDecomp(std::vector<std::vector<double>>& xA)
 			m_xLUDecomp[i][j] = m_xLUDecomp[i][j] - dtemp;
 		}
 		Pivot(j);
+		if (m_bIsSingular) return;
 		// divide all of the others by our new diagonal element
 		for (int i = j + 1; i <= m_iN - 1; i++)
 		{
 			m_xLUDecomp[i][j] = m_xLUDecomp[i][j] / m_xLUDecomp[j][j];
 		}
+		std::cout << j << "\n";
 
 	}
 }
@@ -88,9 +94,12 @@ void LUDecomp::ZeroRowCheck()
 			{
 				break;
 			}
+			if (j == m_iN - 1)
+			{
+				m_bIsSingular = true;
+				return;
+			}
 		}
-		m_bIsSingular = true;
-		return;
 	}
 	return;
 }

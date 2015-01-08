@@ -16,6 +16,5 @@ private:
 	std::vector<int> m_xPermutation;
 	bool m_bIsSingular;
 	int m_iN;
-
 	double m_dTolerance;
 };
