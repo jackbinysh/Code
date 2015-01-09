@@ -2,104 +2,98 @@
 #include <cmath>
 #include <iostream>
 
-LUDecomp::LUDecomp(std::vector<std::vector<double>>& xA)
+
+bool LUDecomp::LUDecompose(std::vector<std::vector<double>>& xInputMatrix)
 {
-	m_iN = xA[0].size();
-	m_bIsSingular = false;
-	m_xLUDecomp = xA;
-	m_dTolerance = pow(10,-9);
+	int iN = xInputMatrix[0].size();
+	bool bIsSingular = false;
 	
-	m_xPermutation.resize(m_iN);
-	for (int i = 0; i <= m_iN - 1; i++)
-	{
-		m_xPermutation[i] = i;
-	}
+	bIsSingular = ZeroRowCheck(xInputMatrix);
+	if (bIsSingular) return true;
 
-
-	ZeroRowCheck();
-	if (m_bIsSingular) return;
-
-	for (int j = 0; j <= m_iN - 1; j++)
+	for (int j = 0; j <= iN - 1; j++)
 	{
 		for (int i = 0; i <= j; i++)
 		{
 			double dtemp = 0;
 			for (int k = 0; k <= i - 1; k++)
 			{
-				dtemp += m_xLUDecomp[i][k] * m_xLUDecomp[k][j];
+				dtemp += xInputMatrix[i][k] * xInputMatrix[k][j];
 			}
-			m_xLUDecomp[i][j] = m_xLUDecomp[i][j] - dtemp;
+			xInputMatrix[i][j] = xInputMatrix[i][j] - dtemp;
 		}
-		for (int i = j+1; i <= m_iN-1; i++)
+		for (int i = j+1; i <= iN-1; i++)
 		{
 			double dtemp = 0;
 			for (int k = 0; k <= j - 1; k++)
 			{
-				dtemp += m_xLUDecomp[i][k] * m_xLUDecomp[k][j];
+				dtemp += xInputMatrix[i][k] * xInputMatrix[k][j];
 			}
 			//we implement pivoting, so we don't do the division here
-			m_xLUDecomp[i][j] = m_xLUDecomp[i][j] - dtemp;
+			xInputMatrix[i][j] = xInputMatrix[i][j] - dtemp;
 		}
-		Pivot(j);
-		if (m_bIsSingular) return;
+		bIsSingular = Pivot(j, xInputMatrix);
+		if (bIsSingular) return true;
 		// divide all of the others by our new diagonal element
-		for (int i = j + 1; i <= m_iN - 1; i++)
+		for (int i = j + 1; i <= iN - 1; i++)
 		{
-			m_xLUDecomp[i][j] = m_xLUDecomp[i][j] / m_xLUDecomp[j][j];
+			xInputMatrix[i][j] = xInputMatrix[i][j] / xInputMatrix[j][j];
 		}
-		std::cout << j << "\n";
-
 	}
+	return false;
 }
 
-void LUDecomp::Pivot(int j)
+bool LUDecomp::Pivot(int j, std::vector<std::vector<double>>& xInputMatrix)
 {
 	double dLargestValue = 0.0;
+	double dTolerance = pow(10, -10);
+
 	int iLargestIndex = j;
-	for (int i = j; i <= m_iN - 1; i++)
+	int iN = xInputMatrix[0].size();
+
+	for (int i = j; i <= iN - 1; i++)
 	{
-		double dTemp = abs(m_xLUDecomp[i][j]);
+		double dTemp = abs(xInputMatrix[i][j]);
 		if (dTemp > dLargestValue)
 		{
 			dLargestValue = dTemp;
 			iLargestIndex = i;
 		}
 	}
-	// if the pivoting returns a largest magnitude of 0, the matrix is singular. we set the bool and return
-	if (abs(dLargestValue) - m_dTolerance < 0)
+	// if the pivoting returns a largest magnitude of 0, the matrix is singular.
+	if (abs(dLargestValue) - dTolerance < 0)
 	{
-		m_bIsSingular = 1;
-		return;
+		return true;
 	}
 	// if we need to pivot rows, do so
 	if (iLargestIndex != j)
 	{
-		for (int k = j; k <= m_iN - 1; k++)
+		for (int k = j; k <= iN - 1; k++)
 		{
-			double temp = m_xLUDecomp[j][k];
-			m_xLUDecomp[j][k] = m_xLUDecomp[iLargestIndex][k];
-			m_xLUDecomp[iLargestIndex][k] = temp;
+			double temp = xInputMatrix[j][k];
+			xInputMatrix[j][k] = xInputMatrix[iLargestIndex][k];
+			xInputMatrix[iLargestIndex][k] = temp;
 		}
 	}
-	return;
+	return false;
 }
 
-void LUDecomp::ZeroRowCheck()
+bool LUDecomp::ZeroRowCheck(std::vector<std::vector<double>>& xInputMatrix)
 {
-	for (int i = 0; i <= m_iN - 1; i++)
+	int iN = xInputMatrix[0].size();
+	for (int i = 0; i <= iN - 1; i++)
 	{
-		for (int j = 0; j <= m_iN - 1; j++)
+		for (int j = 0; j <= iN - 1; j++)
 		{
-			if (m_xLUDecomp[i][j])
+			if (xInputMatrix[i][j])
 			{
 				break;
 			}
-			if (j == m_iN - 1)
+			if (j == iN - 1)
 			{
-				m_bIsSingular = true;
-				return;
+				return true;
 			}
 		}
 	}
-	return;
+	return false;
 }

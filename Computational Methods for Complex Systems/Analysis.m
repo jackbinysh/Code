@@ -1,10 +1,10 @@
 %construct a table of the possible cases
 clear
 
-CaseMatrix = [10 0.05 0.9 0.05 10^6;100 0.04 0.2 0.01 10^6 ;300 0.01 0.12 0.01 10^5 ;10^3 0.01 0.06 0.01 10^3];
+CaseMatrix = [10 0.05 0.9 0.05 1000;100 0.04 0.2 0.01 10^6 ;300 0.01 0.12 0.01 10^5 ;10^3 0.01 0.06 0.01 10^3];
 
 
-for i = 2
+for i = 1
     N = CaseMatrix(i,1);
     InitialP = CaseMatrix(i,2);
     FinalP = CaseMatrix(i,3);
