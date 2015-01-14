@@ -5,18 +5,20 @@
 #include <fstream>
 #include <iomanip>
 #include <random>
+#include <string>
+#include <cstdlib>
 
 // a function which takes in an empty matrix, and fills it in with an ERGraph
 void CreateERGraph(std::vector<std::vector<double>>& xEmptyMatrix, int iN, double dP, std::mt19937& xEngine, std::uniform_real_distribution<double>& xDistribution);
 
-int main()
+int main(int argc, char *argv[])
 {
 	// setting the initial parameters
-	int N = 100;
-	int iNumRuns = pow(10, 4);
-	double dInitialp = 0.1 ;
-	double dFinalp = 0.1;
-	double dStep = 0.05;
+	int iN = atoi(argv[1]);
+	int iNumRuns = atoi(argv[2]);
+	double dInitialp = atof(argv[3]);
+	double dFinalp = atof(argv[4]);
+	double dStep = atof(argv[5]);
 
 	// setting up random number generator engine
 	std::mt19937 xEngine(1729); // some deterministic seed
@@ -24,7 +26,7 @@ int main()
 
 	// constructing two arrays we will use over and over 
 	std::vector<std::vector<double>>  Results((((dFinalp - dInitialp)/ dStep) +2), std::vector<double>(2));
-	std::vector<std::vector<double>> xERGraph(N, std::vector<double>(N));
+	std::vector<std::vector<double>> xERGraph(iN, std::vector<double>(iN));
 
 	int iCounter = 0;
 	for (double p = dInitialp; p <= dFinalp + pow(10,-6); p += dStep)
@@ -32,12 +34,9 @@ int main()
 		int iSum = 0;
 		for (int i = 1; i <= iNumRuns; i++)
 		{
-
-			//CreateERGraph(xERGraph, N, p, xEngine, xDistribution);
-			std::vector<std::vector<double>> xERGraph({ { 2, 1, 4, 1 }, { 1, 1, 0, 1 }, { 1, 2, -3, 1 }, {1,1,1,1} });
+			CreateERGraph(xERGraph, iN, p, xEngine, xDistribution);
 			bool bIsSingular = LUDecomp::LUDecompose(xERGraph);
 			iSum += bIsSingular;
-			//std::cout << i << "\n";
 		}
 		double dFrac = static_cast<double>(iSum) / iNumRuns;
 		Results[iCounter][0] = p;
@@ -47,7 +46,8 @@ int main()
 	}
 
 	//writing results to a file
-	std::ofstream xOutput("Results.txt");
+	std::string sFilename = std::string("Results")  + "Size" + std::to_string(iN) + "Initialp" + std::to_string(dInitialp) + "Finalp" + std::to_string(dFinalp) + ".txt" ;
+	std::ofstream xOutput(sFilename);
 	xOutput.precision(10);
 	for (int i = 0; i <= ((dFinalp - dInitialp) / dStep) ; i++)
 	{
