@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 		cout.precision(10);
 
 		cout << n << "\t" << fElapsedTimes << "\n";
-		xOutput << n << "\t" << fElapsedTimes << "\n";
+	0
 
 		delete T;
 
