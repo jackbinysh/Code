@@ -4,17 +4,17 @@
 #include <cmath>
 #include <random>
 #include <Eigen/Dense>
+#include <iostream>
 
 using namespace Eigen;
 
 int main()
 {
-	const int iNumRuns = 100;
-	const int iN = 4;
-	const double dDistance = static_cast<double>(M_PI)/1.5 ;
+	const int iNumRuns = 10000;
+	const int iNumIterations = 1000;
+	const double dDistance = static_cast<double>(M_PI)/2 ;
 
-
-	Matrix4d xInputMatrix(iN, iN);
+	GeometricGraphs::MyMatrix xInputMatrix;
 
 	// setting up random number generator engine
 	std::mt19937 xEngine(1726); // some deterministic seed
@@ -24,9 +24,10 @@ int main()
 	for (int i = 1; i <= iNumRuns; i++)
 	{
 		GeometricGraphs::CreateLaplacian(xInputMatrix, dDistance, xEngine, xDistribution);
-		GeometricGraphs::QRAlgorithm(xInputMatrix, iNumRuns);
-		int x = 1;
+		GeometricGraphs::TriDiag(xInputMatrix);
+		GeometricGraphs::QRAlgorithm(xInputMatrix, iNumIterations, 0.0001);
 
+		//std::cout << i << "\n";
 	}
 
 }

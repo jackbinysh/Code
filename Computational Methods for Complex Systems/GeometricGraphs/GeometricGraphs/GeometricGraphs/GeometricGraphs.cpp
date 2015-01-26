@@ -1,7 +1,7 @@
 #include "GeometricGraphs.h"
 #include <iostream>
 
-void GeometricGraphs::CreateLaplacian(Matrix4d& xInputMatrix, double dDistance, std::mt19937& xEngine, std::uniform_real_distribution<double>& xDistribution)
+void GeometricGraphs::CreateLaplacian(MyMatrix& xInputMatrix, double dDistance, std::mt19937& xEngine, std::uniform_real_distribution<double>& xDistribution)
 {
 	static int iN = xInputMatrix.rows();
 	static std::vector<double> xPositions(iN);
@@ -40,41 +40,45 @@ void GeometricGraphs::CreateLaplacian(Matrix4d& xInputMatrix, double dDistance, 
 			}
 		}
 	};
-	std::cout << xInputMatrix << std::endl;
 return;
 }
 
-void GeometricGraphs::QRAlgorithm(Matrix4d& xInputMatrix, int iNumruns)
+void GeometricGraphs::TriDiag(MyMatrix& xInputMatrix)
 {
-	// we begin by putting the matrix in tridiagonal form
+	static const int iN = xInputMatrix.rows();
+	static MyVector xU; // the vector u, made up of 0's, then the n-1 elements of the column of a
+	static MyVector xP; // a vector which will be used jointly for p and q
 
-	int iN = xInputMatrix.rows();
-	VectorXd xu(iN); // the vector u, made up of 0's, then the n-1 elements of the column of a
-	VectorXd xp(iN); // a vector which will be used jointly for p and q
-
-	for (int i = 0; i <= iN-3; i++)
+	for (int i = 0; i <= iN - 3; i++)
 	{
 		// setting up u
-		xu(i) = 0;
-		xu.tail((iN - 1) - i) = xInputMatrix.block(i + 1, i, (iN - 1) - i,1);
-		xu(i + 1) += xu.norm();
+		xU(i) = 0;
+		int iLength = (iN - 1) - i;
+		xU.tail(iLength) = xInputMatrix.block(i + 1, i, iLength, 1);
+		xU(i + 1) += xU.tail(iLength).norm();
 		// now U is set up, we work out a series of intermediate quantities
-		double dH = 0.5*xu.squaredNorm();
-		xp = (xInputMatrix*xu) / dH;
-		double dK = (xu.dot(xp)) / (2 * dH);
-		xp = (xp - dK*xu);
-		xInputMatrix = xInputMatrix - xp*xu.transpose() - xu*xp.transpose();
-		std::cout << xInputMatrix << std::endl;
+		double dH = 0.5*xU.tail(iLength).squaredNorm();
+		if (dH == 0) continue;
+		xP = (xInputMatrix.rightCols(iLength)*xU.tail(iLength)) / dH;
+		double dK = (xU.dot(xP)) / (2 * dH);
+		xP = (xP - dK*xU);
+		xInputMatrix = xInputMatrix - xP*xU.transpose() - xU*xP.transpose();
+		//std::cout << xInputMatrix << "\n";
 	}
-	std::cout << xInputMatrix << std::endl << "\n";
-	// the matrix is now in tridiagonal form. We will now apply the QR algorithm
+
+	return;
+}
+
+void GeometricGraphs::QRAlgorithm(MyMatrix& xInputMatrix, int iNumiterations, double dEpsilon)
+{
+	static const int iN = xInputMatrix.rows();
 
 	Vector4d xU = Vector4d::Zero();
 	Vector3d xUEdge = Vector3d::Zero();
 	Vector4d xP = Vector4d::Zero();
 	Vector3d xPEdge = Vector3d::Zero();
 
-	for (int k = 1; k <= iNumruns; k++)
+	for (int k = 1; k <= iNumiterations; k++)
 	{
 		// okay the first nasty edge case, i =0
 		xUEdge(0) = xInputMatrix(0, 0);
@@ -86,7 +90,6 @@ void GeometricGraphs::QRAlgorithm(Matrix4d& xInputMatrix, int iNumruns)
 		xPEdge = (xPEdge - dK*xUEdge);
 		xInputMatrix.block(0,0, 3, 3) = xInputMatrix.block(0,0, 3, 3) - xPEdge*xUEdge.transpose() - xUEdge*xPEdge.transpose();
 		xUEdge.setZero();
-		std::cout << xInputMatrix << std::endl;
 		// okay now the nice generic loop
 		for (int i = 1; i <= iN - 3; i++)
 		{
@@ -101,7 +104,6 @@ void GeometricGraphs::QRAlgorithm(Matrix4d& xInputMatrix, int iNumruns)
 			dK = (xU.dot(xP)) / (2 * dH);
 			xP = (xP - dK*xU);
 			xInputMatrix.block(i-1, i-1, 4, 4) = xInputMatrix.block(i-1, i-1, 4, 4) - xP*xU.transpose() - xU*xP.transpose();
-			std::cout << xInputMatrix << std::endl;
 		}
 		// okay now the nasty other edge case,iN-2
 		xUEdge(1) = xInputMatrix(iN-2,iN-2);
@@ -113,9 +115,8 @@ void GeometricGraphs::QRAlgorithm(Matrix4d& xInputMatrix, int iNumruns)
 		xPEdge = (xPEdge - dK*xUEdge);
 		xInputMatrix.block(iN - 3, iN - 3, 3, 3) = xInputMatrix.block(iN - 3, iN - 3, 3, 3) - xPEdge*xUEdge.transpose() - xUEdge*xPEdge.transpose();
 		xUEdge.setZero();
-		std::cout << xInputMatrix << std::endl;
-	}
 
+	}
 }
 
 double GeometricGraphs::Distance(double dX, double dY, double dMod)
