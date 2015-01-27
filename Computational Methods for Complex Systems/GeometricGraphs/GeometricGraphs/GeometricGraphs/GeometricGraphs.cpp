@@ -69,55 +69,129 @@ void GeometricGraphs::TriDiag(MyMatrix& xInputMatrix)
 	return;
 }
 
-void GeometricGraphs::QRAlgorithm(MyMatrix& xInputMatrix, int iNumiterations, double dEpsilon)
+void GeometricGraphs::QRAlgorithm(MyMatrix& xInputMatrix, int iLowerBound ,int iUpperBound, double dEpsilon)
 {
-	static const int iN = xInputMatrix.rows();
+	//std::cout << xInputMatrix << "\n" << "\n";
+	const int iN = iUpperBound - iLowerBound + 1;
 
-	Vector4d xU = Vector4d::Zero();
-	Vector3d xUEdge = Vector3d::Zero();
-	Vector4d xP = Vector4d::Zero();
-	Vector3d xPEdge = Vector3d::Zero();
+	//base cases. For the 2x2 im just going to explicitly calculate them
+	if (iN == 1) return;
+	if (iN == 2)
+	{
+		if (abs(xInputMatrix(iLowerBound, iLowerBound + 1)) > dEpsilon)
+		{
+			double dTr = xInputMatrix(iLowerBound, iLowerBound) + xInputMatrix(iUpperBound, iUpperBound);
+			double dDet = (xInputMatrix(iLowerBound, iLowerBound))*(xInputMatrix(iUpperBound, iUpperBound)) - std::pow(xInputMatrix(iLowerBound, iLowerBound + 1),2);
+			double dLambdap = 0.5*(dTr + sqrt(std::pow(dTr, 2) - 4 * dDet));
+			double dLambdam = 0.5*(dTr - sqrt(std::pow(dTr, 2) - 4 * dDet));
+			//assignments
+			xInputMatrix(iLowerBound, iLowerBound) = dLambdap;
+			xInputMatrix(iUpperBound, iUpperBound) = dLambdam;
+			xInputMatrix(iLowerBound, iLowerBound+1) = 0;
+			xInputMatrix(iLowerBound+1, iLowerBound) = 0;
+		}
+		return;
+	}
 
-	for (int k = 1; k <= iNumiterations; k++)
+	int i = iLowerBound;
+	while (true)
+	{
+		if (abs(xInputMatrix(i + 1, i)) < dEpsilon)
+		{
+			break;
+		}
+		if (i == iUpperBound - 1)
+		{
+			GeometricGraphs::QRSweep(xInputMatrix, iLowerBound, iUpperBound, dEpsilon);
+		};
+		i++;
+		if (i > iUpperBound - 1) i = i - (iUpperBound-1 - iLowerBound + 1);
+	};
+
+
+	GeometricGraphs::QRAlgorithm(xInputMatrix, iLowerBound, i, dEpsilon);
+	GeometricGraphs::QRAlgorithm(xInputMatrix, i + 1, iUpperBound, dEpsilon);
+	return;
+}
+
+
+void GeometricGraphs::QRSweep(MyMatrix& xInputMatrix, int iLowerBound, int iUpperBound, double dEpsilon)
+{
+	//some initilisation
+	double dK(0), dH(0), dSigma(0);
+
+	static Vector4d xU = Vector4d::Zero();
+	static Vector3d xUEdge = Vector3d::Zero();
+	static Vector4d xP = Vector4d::Zero();
+	static Vector3d xPEdge = Vector3d::Zero();
+	int iN = iUpperBound - iLowerBound + 1;
+
+	xU.setZero();
+	xUEdge.setZero();
+	xP.setZero();
+	xPEdge.setZero();
+
 	{
 		// okay the first nasty edge case, i =0
-		xUEdge(0) = xInputMatrix(0, 0);
-		xUEdge(1) = xInputMatrix(1, 0);
-		xUEdge(0) += xUEdge.norm();
-		double dH = 0.5*xUEdge.squaredNorm();
-		xPEdge = (1 / dH)*xInputMatrix.block(0, 0, 3, 3)*xUEdge;
-		double dK = (xUEdge.dot(xPEdge)) / (2 * dH);
-		xPEdge = (xPEdge - dK*xUEdge);
-		xInputMatrix.block(0,0, 3, 3) = xInputMatrix.block(0,0, 3, 3) - xPEdge*xUEdge.transpose() - xUEdge*xPEdge.transpose();
-		xUEdge.setZero();
+		xUEdge(0) = xInputMatrix(iLowerBound, iLowerBound);
+		xUEdge(1) = xInputMatrix(iLowerBound+ 1, iLowerBound);
+		dSigma = xUEdge.norm();
+		if (dSigma)
+		{
+			if(signbit(dSigma) != signbit(xUEdge(0))) xUEdge(0) -= dSigma;
+			else  xUEdge(0) += dSigma;
+
+			dH = 0.5*xUEdge.squaredNorm();
+			xPEdge = (1 / dH)*xInputMatrix.block(iLowerBound, iLowerBound, 3, 3)*xUEdge;
+			dK = (xUEdge.dot(xPEdge)) / (2 * dH);
+			xPEdge = (xPEdge - dK*xUEdge);
+			xInputMatrix.block(iLowerBound, iLowerBound, 3, 3) = xInputMatrix.block(iLowerBound, iLowerBound, 3, 3) - xPEdge*xUEdge.transpose() - xUEdge*xPEdge.transpose();
+			xUEdge.setZero();
+		}
+
 		// okay now the nice generic loop
-		for (int i = 1; i <= iN - 3; i++)
+		for (int i = iLowerBound + 1 ; i <= iUpperBound - 2; i++)
 		{
 			// fill the middle two in
 			xU(1) = xInputMatrix(i, i);
 			xU(2) = xInputMatrix(i + 1, i);
 
-			xU(1) += xU.norm();
-			dH = 0.5*xU.squaredNorm();
+			dSigma = xUEdge.norm();
 
-			xP = (1 / dH)*xInputMatrix.block(i-1, i-1, 4, 4)*xU;
-			dK = (xU.dot(xP)) / (2 * dH);
-			xP = (xP - dK*xU);
-			xInputMatrix.block(i-1, i-1, 4, 4) = xInputMatrix.block(i-1, i-1, 4, 4) - xP*xU.transpose() - xU*xP.transpose();
+			if (dSigma)
+			{
+				if (signbit(dSigma) != signbit(xUEdge(0))) xU(1) -= dSigma;
+				else  xU(1) += dSigma;
+
+				dH = 0.5*xU.squaredNorm();
+
+				xP = (1 / dH)*xInputMatrix.block(i - 1, i - 1, 4, 4)*xU;
+				dK = (xU.dot(xP)) / (2 * dH);
+				xP = (xP - dK*xU);
+				xInputMatrix.block(i - 1, i - 1, 4, 4) = xInputMatrix.block(i - 1, i - 1, 4, 4) - xP*xU.transpose() - xU*xP.transpose();
+
+			}
+
 		}
 		// okay now the nasty other edge case,iN-2
-		xUEdge(1) = xInputMatrix(iN-2,iN-2);
-		xUEdge(2) = xInputMatrix(iN - 1, iN-2);
-		xUEdge(1) += xUEdge.norm();
-		dH = 0.5*xUEdge.squaredNorm();
-		xPEdge = (1 / dH)*xInputMatrix.block(iN - 3, iN - 3, 3, 3)*(xUEdge);
-		dK = (xUEdge.dot(xPEdge)) / (2 * dH);
-		xPEdge = (xPEdge - dK*xUEdge);
-		xInputMatrix.block(iN - 3, iN - 3, 3, 3) = xInputMatrix.block(iN - 3, iN - 3, 3, 3) - xPEdge*xUEdge.transpose() - xUEdge*xPEdge.transpose();
-		xUEdge.setZero();
+		xUEdge(1) = xInputMatrix(iUpperBound - 1, iUpperBound - 1);
+		xUEdge(2) = xInputMatrix(iUpperBound, iUpperBound -1 );
 
-	}
-}
+		dSigma = xUEdge.norm();
+		if (dSigma)
+		{
+			if (signbit(dSigma) != signbit(xUEdge(0))) xUEdge(1) -= dSigma;
+			else  xUEdge(1) += dSigma;
+
+			dH = 0.5*xUEdge.squaredNorm();
+			xPEdge = (1 / dH)*xInputMatrix.block(iUpperBound - 2, iUpperBound - 2, 3, 3)*(xUEdge);
+			dK = (xUEdge.dot(xPEdge)) / (2 * dH);
+			xPEdge = (xPEdge - dK*xUEdge);
+			xInputMatrix.block(iUpperBound - 2, iUpperBound - 2, 3, 3) = xInputMatrix.block(iUpperBound - 2, iUpperBound - 2, 3, 3) - xPEdge*xUEdge.transpose() - xUEdge*xPEdge.transpose();
+		}
+		xUEdge.setZero();
+	};
+};
 
 double GeometricGraphs::Distance(double dX, double dY, double dMod)
 {
