@@ -136,9 +136,9 @@ void GeometricGraphs::QRSweep(MyMatrix& xInputMatrix, int iLowerBound, int iUppe
 		xUEdge(0) = xInputMatrix(iLowerBound, iLowerBound);
 		xUEdge(1) = xInputMatrix(iLowerBound+ 1, iLowerBound);
 		dSigma = xUEdge.norm();
-		if (dSigma)
+		if (dSigma) // actually pretty sure this can never be 0 
 		{
-			if(signbit(dSigma) != signbit(xUEdge(0))) xUEdge(0) -= dSigma;
+			if(signbit(xUEdge(0))) xUEdge(0) -= dSigma;
 			else  xUEdge(0) += dSigma;
 
 			dH = 0.5*xUEdge.squaredNorm();
@@ -156,11 +156,11 @@ void GeometricGraphs::QRSweep(MyMatrix& xInputMatrix, int iLowerBound, int iUppe
 			xU(1) = xInputMatrix(i, i);
 			xU(2) = xInputMatrix(i + 1, i);
 
-			dSigma = xUEdge.norm();
+			dSigma = xU.norm();
 
 			if (dSigma)
 			{
-				if (signbit(dSigma) != signbit(xUEdge(0))) xU(1) -= dSigma;
+				if (signbit(xU(1))) xU(1) -= dSigma;
 				else  xU(1) += dSigma;
 
 				dH = 0.5*xU.squaredNorm();
@@ -180,7 +180,7 @@ void GeometricGraphs::QRSweep(MyMatrix& xInputMatrix, int iLowerBound, int iUppe
 		dSigma = xUEdge.norm();
 		if (dSigma)
 		{
-			if (signbit(dSigma) != signbit(xUEdge(0))) xUEdge(1) -= dSigma;
+			if (signbit(xUEdge(1))) xUEdge(1) -= dSigma;
 			else  xUEdge(1) += dSigma;
 
 			dH = 0.5*xUEdge.squaredNorm();
