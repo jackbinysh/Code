@@ -19,25 +19,6 @@ Graph::Graph(double dGamma, int iN)
 	ConstructNormalisedCDF();
 }
 
-//// this is the  version not using log sums
-//void Graph::ConstructNormalisedCDF()
-//{
-//	int iKMin = 1;
-//	int iKMax = m_iN - 1;
-//
-//	// compute the normalisation
-//	double dNormalisation = 0;
-//	for (int k = iKMin; k <= iKMax; k++)
-//	{
-//		dNormalisation += pow(k, -m_dGamma);
-//	}
-//
-//	for (int k = iKMin; k <= iKMax; k++)
-//	{
-//		m_xCDF[k] = m_xCDF[k - 1] + (pow(k, -m_dGamma)/dNormalisation);
-//	}
-//}
-
 // this uses log sums
 void Graph::ConstructNormalisedCDF()
 {
@@ -149,12 +130,5 @@ int Graph::GenerateNodeDegree()
 	return x;
 }
 
-// not log sums
-//int Graph::GenerateNodeDegree()
-//{
-//	double dUniformRV = m_xDistribution(m_xEngine);
-//	int x = 0;
-//	while (m_xCDF[x] <= dUniformRV) x++;
-//	return x;
-//}
+
 
