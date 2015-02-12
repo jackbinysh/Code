@@ -1,5 +1,7 @@
 #include <vector>
 #include <random>
+#include <ctime>
+#include <algorithm> 
 
 class Graph
 {
@@ -11,6 +13,7 @@ private:
 	void ResetGraph();
 	void ConstructNormalisedCDF();
 	int GenerateNodeDegree();
+	double LogSum(double a, double b);
 	
 	int m_iN;
 	double m_dGamma;

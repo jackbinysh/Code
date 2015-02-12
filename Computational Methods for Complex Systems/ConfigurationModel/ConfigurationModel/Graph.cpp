@@ -5,8 +5,13 @@ Graph::Graph(double dGamma, int iN)
 {
 	m_iN = iN;
 	m_dGamma = dGamma;
-	m_xEngine = std::mt19937(1727);
+
+	// initialise the mersenne twister with a random seed
+	std::random_device rd;
+	m_xEngine = std::mt19937(std::time(NULL));
 	m_xDistribution = std::uniform_real_distribution<double>(0, 1);
+
+	//
 	m_xDegreeSequence = std::vector<int>(iN);
 	m_xCDF = std::vector<double>(iN);
 	m_xAdjacencyMatrix = std::vector<std::vector<int>>(iN, std::vector<int>(iN));
@@ -14,22 +19,43 @@ Graph::Graph(double dGamma, int iN)
 	ConstructNormalisedCDF();
 }
 
-// this is the  version not using log sums
+//// this is the  version not using log sums
+//void Graph::ConstructNormalisedCDF()
+//{
+//	int iKMin = 1;
+//	int iKMax = m_iN - 1;
+//
+//	// compute the normalisation
+//	double dNormalisation = 0;
+//	for (int k = iKMin; k <= iKMax; k++)
+//	{
+//		dNormalisation += pow(k, -m_dGamma);
+//	}
+//
+//	for (int k = iKMin; k <= iKMax; k++)
+//	{
+//		m_xCDF[k] = m_xCDF[k - 1] + (pow(k, -m_dGamma)/dNormalisation);
+//	}
+//}
+
+// this uses log sums
 void Graph::ConstructNormalisedCDF()
 {
 	int iKMin = 1;
 	int iKMax = m_iN - 1;
 
 	// compute the normalisation
-	double dNormalisation = 0;
-	for (int k = iKMin; k <= iKMax; k++)
+	double dLogNormalisation = 0;
+	for (int k = iKMin+1; k <= iKMax; k++)
 	{
-		dNormalisation += pow(k, -m_dGamma);
+		dLogNormalisation += log1p( exp(-abs(dLogNormalisation + m_dGamma*log(k))) );
 	}
 
 	for (int k = iKMin; k <= iKMax; k++)
 	{
-		m_xCDF[k] = m_xCDF[k - 1] + (pow(k, -m_dGamma)/dNormalisation);
+		double x = m_xCDF[k - 1];
+		double y = -m_dGamma*log(k) - dLogNormalisation;
+		m_xCDF[k] = std::max(x, y) + log1p(exp(-abs(x - y)));
 	}
 }
 
@@ -119,7 +145,16 @@ int Graph::GenerateNodeDegree()
 {
 	double dUniformRV = m_xDistribution(m_xEngine);
 	int x = 0;
-	while (m_xCDF[x] <= dUniformRV) x++;
+	while (m_xCDF[x] <= log1p(dUniformRV)) x++;
 	return x;
 }
+
+// not log sums
+//int Graph::GenerateNodeDegree()
+//{
+//	double dUniformRV = m_xDistribution(m_xEngine);
+//	int x = 0;
+//	while (m_xCDF[x] <= dUniformRV) x++;
+//	return x;
+//}
 

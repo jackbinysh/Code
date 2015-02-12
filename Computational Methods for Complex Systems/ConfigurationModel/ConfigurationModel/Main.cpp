@@ -1,11 +1,18 @@
 #include "Graph.h"
 #include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <string>
 
-int main()
+int main(int argc, char *argv[])
 {
-	int iN = 10;
-	int iNumRuns = pow(10, 6);
-	std::cout.precision(10);
+	// read in from command line
+	int iN = atoi(argv[1]);
+	int iNumRuns = atoi(argv[2]);
+	// some initial in/out settings
+	std::string sFilename = std::string("Size") + std::to_string(iN) + std::string("NumRuns") + std::to_string(iNumRuns);
+	std::ofstream xOutput(sFilename);
+	xOutput.precision(10);
 
 	for (double dGamma = 2; dGamma <= 4; dGamma += 0.1)
 	{
@@ -18,12 +25,8 @@ int main()
 			iNumSuccesses += bSuccess;
 		}
 		double iFracSuccesses = static_cast<double>(iNumSuccesses) / iNumRuns;
-		std::cout << dGamma << "\t" << iFracSuccesses << std::endl;
+		std::cout << dGamma << std::endl;
+		xOutput << dGamma << "\t" << iFracSuccesses << std::endl;
 	}
-
-
-
-
-
 	return 0;
 }
