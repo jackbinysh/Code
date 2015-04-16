@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 	// read in from command line
 	const int iLatticeSize = atoi(argv[1]);
 	// put in an integer value of the temp for now
-	const double dTemp = atof(argv[2])/10;
+	const double dTemp = (atof(argv[2])/10);
 
 	// set up the output
 	std::string sFilename = std::string("Size") + argv[1] + std::string("Temp") + argv[2] + std::string(".txt");
